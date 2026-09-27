@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ELAPU-3 Compiler v3.7 (IRONCLAD)</title>
+    <style>
+        :root { --bg: #0d1117; --panel: #161b22; --border: #30363d; --text: #c9d1d9; --accent: #58a6ff; --asm: #d2a8ff; --err: #f85149; --comment: #8b949e; }
+        body { background: var(--bg); color: var(--text); font-family: 'Consolas', 'Courier New', monospace; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        header { background: var(--panel); padding: 12px 20px; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .main { display: flex; flex: 1; overflow: hidden; }
+        .column { display: flex; flex-direction: column; border-right: 1px solid var(--border); }
+        .editor-zone { flex: 2.5; }
+        .asm-zone { flex: 1.5; background: #090c10; }
+        .sim-zone { flex: 1.2; padding: 15px; gap: 10px; overflow-y: auto; border-right: none; }
+        
+        textarea { flex: 1; background: transparent; color: #79c0ff; border: none; padding: 20px; font-size: 14px; resize: none; outline: none; line-height: 1.6; tab-size: 4; }
+        .section-label { background: var(--border); padding: 6px 15px; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #8b949e; }
+        
+        .asm-line { display: flex; font-size: 12px; padding: 2px 10px; border-bottom: 1px solid #1a1a1a; }
+        .asm-pc { color: #8b949e; width: 45px; flex-shrink: 0; }
+        .asm-hex { color: var(--accent); width: 65px; flex-shrink: 0; }
+        .asm-text { color: var(--asm); }
+
+        .reg-card { background: var(--panel); padding: 10px; border: 1px solid var(--border); border-radius: 4px; text-align: center; }
+        .reg-val { font-size: 20px; font-weight: bold; color: var(--accent); margin-top: 4px; }
+        .tty { background: #000; color: #39ff14; height: 150px; padding: 12px; border-radius: 4px; border: 1px solid var(--border); overflow-y: auto; white-space: pre-wrap; font-size: 14px; }
+        
+        button { background: #238636; color: white; border: none; padding: 8px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #2ea043; }
+        .pc-now { background: #2c313a !important; border-left: 3px solid var(--accent); }
+        #log { background: #000; height: 100px; padding: 10px; font-size: 12px; color: #8b949e; overflow-y: auto; border-top: 1px solid var(--border); white-space: pre-wrap; }
+        .error { color: var(--err); font-weight: bold; }
+
+        .speed-control { display: flex; align-items: center; gap: 8px; margin-right: 15px; font-size: 13px; font-weight: bold; }
+        input[type=range] { width: 120px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div><strong>ELAPU-3</strong> <span style="color:var(--accent)">IRONCLAD v3.7 (Robust Regex & High Speed)</span></div>
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <div class="speed-control">
+            <label for="speed-slider">Speed:</label>
+            <input type="range" id="speed-slider" min="1" max="500" value="500" oninput="updateSpeed()" title="Adjust CPU Clock Speed">
+        </div>
+        <button onclick="compileAndRun()">Compile & Run</button>
+        <button style="background:#da3633" onclick="stopCPU()">Stop</button>
+        <button style="background:#30363d" onclick="downloadHex()">Export .HEX</button>
+    </div>
+</header>
+
+<div class="main">
+    <div class="column editor-zone">
+        <div class="section-label">Source Code</div>
+        <textarea id="editor" spellcheck="false" onkeydown="handleTab(event)"># ELAPU-3 "IRONCLAD" FULL-SPECTRUM DIAGNOSTIC v3.7
+print("--- FULL SYSTEM DIAGNOSTIC ---")
+
+# [1] IMM & LOAD/STORE
+t1 = 165
+if t1 == 165:
+    print("1.L/S:PASS ")
+else:
+    print("1.L/S:FAIL ")
+
+# [2] ADD & SUB
+t2 = 10 + 20
+t3 = 50 - 10
+if t2 == 30:
+    if t3 == 40:
+        print("2.ALU:PASS ")
+    else:
+        print("2.ALU:FAIL ")
+else:
+    print("2.ALU:FAIL ")
+
+# [3] MULTIPLY & DIVIDE
+t4 = 5 * 4
+t5 = 20 / 4
+if t4 == 20:
+    if t5 == 5:
+        print("3.M/D:PASS ")
+    else:
+        print("3.M/D:FAIL ")
+else:
+    print("3.M/D:FAIL ")
+
+# [4] FUNCTIONS & NESTING
+def calc_magic(a, b):
+    t = a * b
+    return t / 2
+
+t6 = calc_magic(10, 4) # Should be 20
+if t6 == 20:
+    print("4.FNC:PASS ")
+else:
+    print("4.FNC:FAIL ")
+
+# [5] FLAGS & CONDITIONS
+t7 = 100 - 100 # Z should be 1
+t8 = 0
+if t7 == 0:
+    if 10 > 5:
+        t8 = 1
+if t8 == 1:
+    print("5.FLG:PASS ")
+else:
+    print("5.FLG:FAIL ")
+
+# [6] LOOPS & BREAK
+t9 = 0
+while True:
+    t9 = t9 + 1
+    if t9 == 3:
+        break
+if t9 == 3:
+    print("6.LOP:PASS ")
+else:
+    print("6.LOP:FAIL ")
+
+# [7] DYNAMIC MEMORY (ARRAYS)
+arr = Array(3)
+arr[0] = 10
+arr[1] = 20
+arr[2] = arr[0] + arr[1]
+if arr[2] == 30:
+    print("7.ARR:PASS ")
+else:
+    print("7.ARR:FAIL ")
+
+# [8] MMIO & HARDWARE
+print("8.MIO: DRAWING SCREEN...")
+screen.clear()
+sx = 2
+while sx < 14:
+    screen.write(sx, sx)
+    sx = sx + 1
+
+print("--- DIAGNOSTIC COMPLETE ---")</textarea>
+        <div id="log">System Ready.</div>
+    </div>
+
+    <div class="column asm-zone">
+        <div class="section-label">Disassembly</div>
+        <div id="asm-view" style="overflow-y:auto; flex:1;"></div>
+    </div>
+
+    <div class="column sim-zone">
+        <div class="section-label">Registers</div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top:5px;">
+            <div class="reg-card"><div>ACC</div><div class="reg-val" id="v-acc">00</div></div>
+            <div class="reg-card"><div>PC</div><div class="reg-val" id="v-pc">000</div></div>
+            <div class="reg-card"><div>ALU</div><div class="reg-val" id="v-alu">00</div></div>
+            <div class="reg-card"><div>DAR</div><div class="reg-val" id="v-dar" style="color:#d2a8ff">00</div></div>
+            <div class="reg-card" style="grid-column: span 2;"><div>FLAGS</div><div class="reg-val" id="v-flg" style="font-size:12px">Z:0 C:0</div></div>
+        </div>
+        <div class="section-label" style="margin-top:10px;">Screen (MMIO 0x600)</div>
+        <canvas id="screen" width="160" height="160" style="background:#000; border:1px solid var(--border); image-rendering:pixelated; display:block;"></canvas>
+        
+        <div class="section-label" style="margin-top:10px;">Keyboard Buffer (MMIO 0x100)</div>
+        <input type="text" id="kbd-input" placeholder="Click here to type..." autocomplete="off" spellcheck="false" style="width:100%; box-sizing:border-box; background:#000; color:#39ff14; border:1px solid var(--border); padding:8px; border-radius:4px; font-family:monospace; outline:none;" />
+        
+        <div class="section-label" style="margin-top:10px;">TTY Output (MMIO 0x200)</div>
+        <div id="tty" class="tty"></div>
+    </div>
+</div>
+
+<script>
+// --- CONSTANTS & ARCHITECTURE ---
+const OP = { 
+    NOP:0, LOAD:1, STORE:2, ADD:3, SUB:4, COMMIT:5, IMM:6, JMP:7, JZ:8, JC:9,
+    RDA:10, WDA:11, SDA:12 
+};
+const MMIO_KBD = 0x100, MMIO_TTY = 0x200, MMIO_SCREEN = 0x600;
+
+// Internal Temporary Variables used during compilation
+const TEMP_CALC_RES = 248, TEMP_CALC_A = 249, TEMP_CALC_B = 250; 
+const TEMP_ARR_VAL = 252, TEMP_IDX = 253, TEMP_LHS = 254, TEMP_RHS = 255;
+
+let PROM = new Uint16Array(4096), RAM = new Uint8Array(256);
+let PC=0, ACC=0, ALU=0, Z=0, C=0, DAR=0, isRunning=false, runInterval=null;
+let clockDelay = 30, stepsPerTick = 1;
+
+function updateSpeed() {
+    let speedVal = parseInt(document.getElementById('speed-slider').value);
+    
+    if (speedVal <= 100) {
+        clockDelay = Math.max(10, Math.floor(1000 / speedVal));
+        stepsPerTick = 1;
+    } else {
+        clockDelay = 10;
+        stepsPerTick = Math.floor(speedVal / 100); 
+    }
+
+    if (isRunning) {
+        clearInterval(runInterval);
+        runInterval = setInterval(runBatch, clockDelay);
+    }
+}
+
+// --- COMPILER ENGINE ---
+class Compiler {
+    constructor() {
+        this.bin = []; this.asm = []; this.vars = {}; this.arrays = {}; this.ramPtr = 0;
+        this.blockStack = [];
+    }
+
+    emit(op, data=0, comment="") {
+        this.bin.push(((op & 0xF) << 12) | (data & 0xFFF));
+        this.asm.push({ pc: this.bin.length - 1, text: comment });
+        return this.bin.length - 1;
+    }
+
+    patch(pc, target) {
+        if (pc === null || pc === undefined) return;
+        let op = (this.bin[pc] >> 12) & 0xF;
+        this.bin[pc] = (op << 12) | (target & 0xFFF);
+    }
+
+    getVar(name) {
+        if (!isNaN(name)) return null;
+        if (!(name in this.vars)) {
+            if (this.ramPtr >= 240) throw "RAM Overflow (Max 240 variables allowed)";
+            this.vars[name] = this.ramPtr++;
+        }
+        return this.vars[name];
+    }
+
+    emitLoadOperand(token, targetAddr = null) {
+        token = token.trim();
+        let arrMatch = token.match(/^(\w+)\[(.*)\]$/);
+
+        if (token === 'kbd.read()') {
+            this.emit(OP.LOAD, MMIO_KBD, `READ KBD`);
+        } else if (arrMatch) {
+            let arrName = arrMatch[1], idxToken = arrMatch[2].trim();
+            let baseAddr = (arrName in this.arrays) ? this.arrays[arrName] : this.getVar(arrName);
+            
+            this.emitExpr(idxToken);
+            this.emit(OP.STORE, TEMP_IDX, `SAVE IDX`);
+            this.emit(OP.IMM, baseAddr, `LOAD BASE`);
+            this.emit(OP.ADD, TEMP_IDX, `BASE + IDX`);
+            this.emit(OP.COMMIT, 0, `COMMIT ADDR`);
+            
+            this.emit(OP.SDA, 0, `SET DAR`);
+            this.emit(OP.RDA, 0, `READ DYNAMIC`);
+        } else if (!isNaN(token)) {
+            this.emit(OP.IMM, parseInt(token) & 0xFF, `IMM ${token}`);
+        } else {
+            this.emit(OP.LOAD, this.getVar(token), `LOAD ${token}`);
+        }
+
+        if (targetAddr !== null) this.emit(OP.STORE, targetAddr, `SCRATCH -> ${targetAddr}`);
+    }
+
+    emitExpr(expr) {
+        expr = expr.trim();
+        let opChar = null;
+        let bracketLevel = 0;
+        let splitIdx = -1;
+        
+        for (let i = 0; i < expr.length; i++) {
+            if (expr[i] === '[') bracketLevel++;
+            else if (expr[i] === ']') bracketLevel--;
+            else if (bracketLevel === 0 && (expr[i] === '+' || expr[i] === '-' || expr[i] === '*' || expr[i] === '/')) {
+                opChar = expr[i];
+                splitIdx = i;
+                break;
+            }
+        }
+
+        if (opChar === '+') {
+            let left = expr.substring(0, splitIdx).trim();
+            let right = expr.substring(splitIdx + 1).trim();
+            this.emitLoadOperand(right, TEMP_RHS);
+            this.emitLoadOperand(left);
+            this.emit(OP.ADD, TEMP_RHS, `ALU +`);
+            this.emit(OP.COMMIT, 0, `COMMIT`);
+        } else if (opChar === '-') {
+            let left = expr.substring(0, splitIdx).trim();
+            let right = expr.substring(splitIdx + 1).trim();
+            this.emitLoadOperand(left, TEMP_LHS); 
+            this.emitLoadOperand(right);           
+            this.emit(OP.SUB, TEMP_LHS, `ALU -`);  
+            this.emit(OP.COMMIT, 0, `COMMIT`);
+        } else if (opChar === '*') {
+            let left = expr.substring(0, splitIdx).trim();
+            let right = expr.substring(splitIdx + 1).trim();
+            this.emitLoadOperand(right, TEMP_CALC_B);
+            this.emitLoadOperand(left, TEMP_CALC_A);
+            this.emit(OP.IMM, 0, `MUL INIT`);
+            this.emit(OP.STORE, TEMP_CALC_RES);
+            
+            let loopStart = this.bin.length;
+            this.emit(OP.IMM, 0); 
+            this.emit(OP.SUB, TEMP_CALC_B, `CHK B == 0`);
+            let jzEnd = this.emit(OP.JZ, 0, `MUL END`);
+            
+            this.emit(OP.IMM, 1);
+            this.emit(OP.SUB, TEMP_CALC_B, `B - 1`);
+            this.emit(OP.COMMIT, 0);
+            this.emit(OP.STORE, TEMP_CALC_B);
+            this.emit(OP.LOAD, TEMP_CALC_A);
+            this.emit(OP.ADD, TEMP_CALC_RES, `RES + A`);
+            this.emit(OP.COMMIT, 0);
+            this.emit(OP.STORE, TEMP_CALC_RES);
+            this.emit(OP.JMP, loopStart);
+            this.patch(jzEnd, this.bin.length);
+            
+            this.emit(OP.LOAD, TEMP_CALC_RES, `LOAD MUL RES`);
+        } else if (opChar === '/') {
+            let left = expr.substring(0, splitIdx).trim();
+            let right = expr.substring(splitIdx + 1).trim();
+            this.emitLoadOperand(right, TEMP_CALC_B); 
+            this.emitLoadOperand(left, TEMP_CALC_A);  
+            this.emit(OP.IMM, 0, `DIV INIT`);
+            this.emit(OP.STORE, TEMP_CALC_RES);
+            
+            this.emit(OP.IMM, 0);
+            this.emit(OP.SUB, TEMP_CALC_B, `CHK B == 0`);
+            let jzEndZero = this.emit(OP.JZ, 0, `DIV BY 0 EXIT`);
+            
+            let loopStart = this.bin.length;
+            this.emit(OP.LOAD, TEMP_CALC_B);
+            this.emit(OP.SUB, TEMP_CALC_A, `A - B`);
+            let jcCont = this.emit(OP.JC, 0, `IF A>=B CONT`);
+            let jmpEnd = this.emit(OP.JMP, 0, `ELSE END`);
+            
+            this.patch(jcCont, this.bin.length);
+            this.emit(OP.COMMIT, 0, `A = A - B`);
+            this.emit(OP.STORE, TEMP_CALC_A);
+            this.emit(OP.IMM, 1);
+            this.emit(OP.ADD, TEMP_CALC_RES, `RES + 1`);
+            this.emit(OP.COMMIT, 0);
+            this.emit(OP.STORE, TEMP_CALC_RES);
+            this.emit(OP.JMP, loopStart);
+            
+            this.patch(jzEndZero, this.bin.length);
+            this.patch(jmpEnd, this.bin.length);
+            this.emit(OP.LOAD, TEMP_CALC_RES, `LOAD DIV RES`);
+        } else {
+            this.emitLoadOperand(expr);
+        }
+    }
+
+    emitCondition(left, opSign, right) {
+        let swap = false; let condType = '';
+        if (opSign === '==') condType = 'JZ';
+        else if (opSign === '>') condType = 'JC_AND_NOT_JZ';
+        else if (opSign === '>=') condType = 'JC';
+        else if (opSign === '<') { swap = true; condType = 'JC_AND_NOT_JZ'; } 
+        else if (opSign === '<=') { swap = true; condType = 'JC'; }
+
+        if (swap) { let temp = left; left = right; right = temp; }
+        this.emitLoadOperand(left, TEMP_LHS);
+        this.emitLoadOperand(right, TEMP_RHS);
+        this.emit(OP.LOAD, TEMP_RHS, `CMP LOAD RHS`);
+        this.emit(OP.SUB, TEMP_LHS, `CMP SUB LHS`);
+        this.emit(OP.COMMIT, 0, `COMMIT`);
+        return { type: condType };
+    }
+
+    compile(source) {
+        const rawLines = source.split('\n');
+        this.bin = []; this.asm = []; this.vars = {}; this.arrays = {}; this.ramPtr = 0; this.blockStack = [];
+        
+        // PASS 1: Extract Function Blocks
+        this.functions = {};
+        let activeFunc = null;
+        let funcIndent = 0;
+        let normalLines = [];
+
+        for (let i = 0; i < rawLines.length; i++) {
+            let raw = rawLines[i];
+            let indent = raw.search(/\S/);
+            let line = raw.trim();
+            
+            let commentIdx = raw.indexOf('#');
+            let noComment = commentIdx !== -1 ? raw.substring(0, commentIdx) : raw;
+            if (!noComment.trim()) {
+                if (activeFunc) this.functions[activeFunc].lines.push(raw);
+                continue;
+            }
+
+            if (activeFunc) {
+                if (indent <= funcIndent) activeFunc = null; 
+                else { this.functions[activeFunc].lines.push(raw); continue; }
+            }
+
+            if (!activeFunc && line.startsWith('def ')) {
+                let match = line.match(/def\s+(\w+)\((.*?)\)\s*:/);
+                if (match) {
+                    activeFunc = match[1];
+                    funcIndent = indent;
+                    this.functions[activeFunc] = {
+                        args: match[2].split(',').map(s=>s.trim()).filter(s=>s),
+                        lines: [], baseIndent: indent + 4
+                    };
+                    continue;
+                }
+            }
+            if (!activeFunc) normalLines.push(raw);
+        }
+
+        // PASS 2: Inline Function Calls (Macro Expansion)
+        this.callCounter = 0;
+        let queue = normalLines.slice();
+        let expandedLines = [];
+
+        function splitArgs(str) {
+            let args = []; let curr = ""; let level = 0;
+            for (let i = 0; i < str.length; i++) {
+                if (str[i] === '(') level++;
+                else if (str[i] === ')') level--;
+                if (str[i] === ',' && level === 0) {
+                    args.push(curr.trim()); curr = "";
+                } else curr += str[i];
+            }
+            if (curr.trim()) args.push(curr.trim());
+            return args;
+        }
+
+        while (queue.length > 0) {
+            let raw = queue.shift();
+            let callIndentStr = raw.match(/^\s*/)[0];
+            let commentIdx = raw.indexOf('#');
+            let noComment = commentIdx !== -1 ? raw.substring(0, commentIdx) : raw;
+
+            let funcMatch = null;
+            if (noComment.trim()) {
+                for (let fn in this.functions) {
+                    let idx = noComment.indexOf(fn + '(');
+                    if (idx === -1) idx = noComment.indexOf(fn + ' (');
+                    if (idx !== -1) {
+                        let openParen = noComment.indexOf('(', idx);
+                        let parenLevel = 1; let closeParen = -1;
+                        for(let k = openParen + 1; k < noComment.length; k++) {
+                            if (noComment[k] === '(') parenLevel++;
+                            else if (noComment[k] === ')') parenLevel--;
+                            if (parenLevel === 0) { closeParen = k; break; }
+                        }
+                        if (closeParen !== -1) {
+                            let argStr = noComment.substring(openParen + 1, closeParen);
+                            funcMatch = { fn: fn, argStr: argStr, fullMatch: noComment.substring(idx, closeParen + 1) };
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (funcMatch) {
+                let fn = funcMatch.fn;
+                let args = splitArgs(funcMatch.argStr);
+                let fnDef = this.functions[fn];
+                
+                let inject = [];
+                for(let i=0; i<fnDef.args.length; i++) {
+                    let argName = fnDef.args[i];
+                    let val = args[i] || "0";
+                    inject.push(`${callIndentStr}${argName} = ${val}`);
+                }
+                
+                let callId = this.callCounter++;
+                inject.push(`${callIndentStr}__dummy_${callId} = 0`);
+                inject.push(`${callIndentStr}while __dummy_${callId} == 0:`);
+                inject.push(`${callIndentStr}    __dummy_${callId} = 1`);
+                
+                for (let fRaw of fnDef.lines) {
+                    if (!fRaw.trim()) continue;
+                    let fIndent = fRaw.search(/\S/);
+                    let relativeIndent = Math.max(0, fIndent - fnDef.baseIndent);
+                    let spaces = callIndentStr + "    " + " ".repeat(relativeIndent);
+                    let fTrim = fRaw.trim();
+                    
+                    if (fTrim.startsWith('return ')) {
+                        let retExpr = fTrim.substring(7).trim();
+                        inject.push(`${spaces}__ret_${callId} = ${retExpr}`);
+                        inject.push(`${spaces}break`);
+                    } else if (fTrim === 'return') {
+                        inject.push(`${spaces}break`);
+                    } else {
+                        inject.push(spaces + fTrim);
+                    }
+                }
+                
+                let newLine = raw.replace(funcMatch.fullMatch, `__ret_${callId}`);
+                inject.push(newLine);
+                
+                queue = inject.concat(queue); // Recursive macro queue
+                continue;
+            }
+            expandedLines.push(raw);
+        }
+
+        const lines = expandedLines;
+
+        // PASS 3: Generate Binary
+        for (let i = 0; i < lines.length; i++) {
+            let raw = lines[i];
+            let indent = raw.search(/\S/);
+            
+            let commentIdx = raw.indexOf('#');
+            let noComment = commentIdx !== -1 ? raw.substring(0, commentIdx) : raw;
+            let line = noComment.trim();
+            
+            if (!line) continue;
+
+            while (this.blockStack.length > 0) {
+                let topIndent = this.blockStack[this.blockStack.length - 1].indent;
+                if (indent < topIndent || (indent === topIndent && !line.startsWith('else:'))) {
+                    this.closeBlock();
+                } else {
+                    break;
+                }
+            }
+
+            if (line.startsWith('print(')) {
+                let val = line.slice(6, -1).trim();
+                if (val.startsWith('"')) {
+                    val.slice(1, -1).split('').forEach(c => {
+                        this.emit(OP.IMM, c.charCodeAt(0));
+                        this.emit(OP.STORE, MMIO_TTY);
+                    });
+                } else {
+                    this.emitExpr(val);
+                    this.emit(OP.STORE, MMIO_TTY);
+                }
+            }
+            else if (line === 'screen.clear()') this.emit(OP.LOAD, MMIO_SCREEN, `CLEAR SCREEN`);
+            else if (line.startsWith('screen.write(')) {
+                let m = line.match(/screen\.write\(([^,]+),\s*([^)]+)\)/);
+                if (m) {
+                    let tempX = this.getVar('__scr_x');
+                    this.emitExpr(m[1]);
+                    for(let i=0; i<4; i++) {
+                        this.emit(OP.STORE, tempX, `SHIFT STORE`);
+                        this.emit(OP.ADD, tempX, `SHIFT ADD`);
+                        this.emit(OP.COMMIT, 0, `SHIFT COMMIT`);
+                    }
+                    this.emit(OP.STORE, tempX, `STORE SHIFTED X`);
+                    this.emitExpr(m[2]);
+                    this.emit(OP.ADD, tempX, `ADD Y`);
+                    this.emit(OP.COMMIT, 0, `COMMIT XY`);
+                    this.emit(OP.STORE, MMIO_SCREEN, `STORE SCREEN`);
+                }
+            }
+            else if (line.includes('=') && !line.includes('==') && !line.includes('<') && !line.includes('>')) {
+                let [lhs, ...rhsParts] = line.split('=');
+                lhs = lhs.trim(); let rhs = rhsParts.join('=').trim();
+                
+                let allocMatch = rhs.match(/^Array\((\d+)\)$/);
+                if (allocMatch) {
+                    this.arrays[lhs] = this.ramPtr; this.ramPtr += parseInt(allocMatch[1]); continue;
+                }
+
+                let arrMatch = lhs.match(/^(\w+)\[(.*)\]$/);
+                if (arrMatch) {
+                    let arrName = arrMatch[1], idxToken = arrMatch[2].trim();
+                    let baseAddr = (arrName in this.arrays) ? this.arrays[arrName] : this.getVar(arrName);
+                    
+                    this.emitExpr(rhs);
+                    this.emit(OP.STORE, TEMP_ARR_VAL, `SAVE RHS`);
+                    this.emitExpr(idxToken);
+                    this.emit(OP.STORE, TEMP_IDX, `SAVE IDX`);
+                    this.emit(OP.IMM, baseAddr, `LOAD BASE`);
+                    this.emit(OP.ADD, TEMP_IDX, `BASE + IDX`);
+                    this.emit(OP.COMMIT, 0, `COMMIT ADDR`);
+                    this.emit(OP.SDA, 0, `SET DAR`);
+                    this.emit(OP.LOAD, TEMP_ARR_VAL, `RESTORE RHS`);
+                    this.emit(OP.WDA, 0, `WRITE DYNAMIC`);
+                } else {
+                    this.emitExpr(rhs);
+                    this.emit(OP.STORE, this.getVar(lhs), `STORE ${lhs}`);
+                }
+            }
+            else if (line.startsWith('while ')) {
+                let loopTop = this.bin.length;
+                if (line.includes('True')) {
+                    this.blockStack.push({ type: 'WHILE', indent: indent, loopTop: loopTop, forever: true, breakJumps: [] });
+                } else {
+                    // FIX: Safer Regex that captures everything on the left and right, allowing array brackets!
+                    let m = line.match(/while\s+(.+?)\s*(<=|>=|<|>|==)\s*(.+?)\s*:/);
+                    if (!m) throw `Syntax Error in while condition: ${line}`;
+                    let condInfo = this.emitCondition(m[1].trim(), m[2], m[3].trim());
+                    let fj = this.handleJumpLogic(condInfo);
+                    this.blockStack.push({ type: 'WHILE', indent: indent, falseJumps: fj, loopTop: loopTop, forever: false, breakJumps: [] });
+                }
+            }
+            else if (line === 'break') {
+                let loop = this.blockStack.slice().reverse().find(b => b.type === 'WHILE');
+                if (!loop) throw "Syntax Error: 'break' outside of loop";
+                loop.breakJumps.push(this.emit(OP.JMP, 0, "BREAK"));
+            }
+            else if (line.startsWith('if ')) {
+                // FIX: Safer Regex here as well
+                let m = line.match(/if\s+(.+?)\s*(<=|>=|<|>|==)\s*(.+?)\s*:/);
+                if (!m) throw `Syntax Error in if condition: ${line}`;
+                let condInfo = this.emitCondition(m[1].trim(), m[2], m[3].trim());
+                let fj = this.handleJumpLogic(condInfo);
+                this.blockStack.push({ type: 'IF', indent: indent, falseJumps: fj, endJump: null });
+            }
+            else if (line.startsWith('else:')) {
+                let b = this.blockStack.pop();
+                let ej = this.emit(OP.JMP, 0, "SKIP_ELSE");
+                if (!b || !b.falseJumps) throw "Syntax Error: 'else' without a matching 'if'";
+                
+                b.falseJumps.forEach(j => this.patch(j, this.bin.length));
+                this.blockStack.push({ type: 'ELSE', indent: indent, endJump: ej });
+            }
+        }
+        while(this.blockStack.length > 0) this.closeBlock();
+        let halt = this.bin.length;
+        this.emit(OP.JMP, halt, "HALT");
+        return { bin: this.bin, asm: this.asm };
+    }
+
+    handleJumpLogic(cond) {
+        let fj = [];
+        if (cond.type === 'JZ') {
+            let tj = this.emit(OP.JZ, 0); fj.push(this.emit(OP.JMP, 0)); this.patch(tj, this.bin.length);
+        } else if (cond.type === 'JC') {
+            let tj = this.emit(OP.JC, 0); fj.push(this.emit(OP.JMP, 0)); this.patch(tj, this.bin.length);
+        } else if (cond.type === 'JC_AND_NOT_JZ') {
+            fj.push(this.emit(OP.JZ, 0)); let tj = this.emit(OP.JC, 0); fj.push(this.emit(OP.JMP, 0));
+            this.patch(tj, this.bin.length);
+        }
+        return fj;
+    }
+
+    closeBlock() {
+        let b = this.blockStack.pop();
+        if (!b) return; 
+        if (b.type === 'IF') {
+            if (b.falseJumps) b.falseJumps.forEach(j => this.patch(j, this.bin.length));
+        }
+        else if (b.type === 'ELSE') {
+            this.patch(b.endJump, this.bin.length);
+        }
+        else if (b.type === 'WHILE') {
+            this.emit(OP.JMP, b.loopTop); let exit = this.bin.length;
+            if (!b.forever && b.falseJumps) b.falseJumps.forEach(j => this.patch(j, exit));
+            if (b.breakJumps) b.breakJumps.forEach(j => this.patch(j, exit));
+        }
+    }
+}
+
+// --- HARDWARE EMULATION ---
+function runBatch() {
+    if (!isRunning) return;
+    let lastExecutedPc = PC;
+    for (let i = 0; i < stepsPerTick; i++) {
+        lastExecutedPc = PC;
+        if (!stepCore()) break; 
+    }
+    updateUI(lastExecutedPc);
+}
+
+function stepCore() {
+    let instr = PROM[PC], op = (instr >> 12) & 0xF, data = instr & 0xFFF, oldPc = PC; 
+    PC = (PC + 1) & 0xFFF;
+
+    let isMMIO = (data >= 0x100);
+    let ramAddr = data & 0xFF;
+
+    switch(op) {
+        case OP.LOAD:
+            if (isMMIO) {
+                ACC = 0; 
+                if (data === MMIO_SCREEN) screenClear();
+                if (data === MMIO_KBD) {
+                    let kbdEl = document.getElementById('kbd-input');
+                    if (kbdEl.value.length > 0) { ACC = kbdEl.value.charCodeAt(0) & 0xFF; kbdEl.value = kbdEl.value.substring(1); }
+                }
+            } else { ACC = RAM[ramAddr]; }
+            break;
+        case OP.STORE:
+            if (isMMIO) {
+                if (data === MMIO_TTY) {
+                    let t = document.getElementById('tty');
+                    t.innerText += String.fromCharCode(ACC);
+                    t.scrollTop = t.scrollHeight;
+                }
+                if (data === MMIO_SCREEN) screenSet((ACC >> 4) & 0xF, ACC & 0xF);
+            } else RAM[ramAddr] = ACC;
+            break;
+        case OP.ADD: 
+            let valA = isMMIO ? 0 : RAM[ramAddr];
+            ALU = ACC + valA; C = ALU > 255 ? 1 : 0; ALU &= 0xFF; Z = ALU === 0 ? 1 : 0; 
+            break;
+        case OP.SUB: 
+            let valS = isMMIO ? 0 : RAM[ramAddr];
+            ALU = valS - ACC;
+            C = ALU < 0 ? 0 : 1; 
+            ALU = (ALU + 256) % 256; Z = ALU === 0 ? 1 : 0; 
+            break;
+        case OP.COMMIT: ACC = ALU; break;
+        case OP.IMM: ACC = data & 0xFF; break;
+        case OP.JMP: PC = data; break;
+        case OP.JZ: if(Z) PC = data; break;
+        case OP.JC: if(C) PC = data; break;
+        case OP.RDA: ACC = RAM[DAR & 0xFF]; break;
+        case OP.WDA: RAM[DAR & 0xFF] = ACC; break;
+        case OP.SDA: DAR = ACC & 0xFF; break;
+    }
+    
+    if (op === OP.JMP && data === oldPc) {
+        stopCPU();
+        return false;
+    }
+    return true;
+}
+
+function compileAndRun() {
+    try {
+        const res = new Compiler().compile(document.getElementById('editor').value);
+        PROM.fill(0); res.bin.forEach((v, i) => PROM[i] = v);
+        RAM.fill(0); PC=0; ACC=0; ALU=0; Z=0; C=0; DAR=0; isRunning=true;
+        
+        document.getElementById('tty').innerText = "";
+        document.getElementById('kbd-input').value = ""; 
+        screenClear();
+        
+        renderAsm(res.asm, res.bin);
+        updateSpeed();
+
+        document.getElementById('log').innerText = "Success: Compiled " + res.asm.length + " instructions.";
+        document.getElementById('log').className = "";
+    } catch(e) { 
+        document.getElementById('log').innerText = "Compile Error: " + e; 
+        document.getElementById('log').className = "error"; 
+        stopCPU(); 
+    }
+}
+
+function updateUI(curr) {
+    document.getElementById('v-acc').innerText = ACC.toString(16).toUpperCase().padStart(2,'0');
+    document.getElementById('v-pc').innerText = curr.toString(16).toUpperCase().padStart(3,'0');
+    document.getElementById('v-alu').innerText = ALU.toString(16).toUpperCase().padStart(2,'0');
+    document.getElementById('v-dar').innerText = DAR.toString(16).toUpperCase().padStart(2,'0');
+    document.getElementById('v-flg').innerText = `Z:${Z} C:${C}`;
+    document.querySelectorAll('.asm-line').forEach(el => el.classList.remove('pc-now'));
+    const line = document.getElementById(`asm-${curr}`);
+    if(line) line.classList.add('pc-now');
+}
+
+function renderAsm(asm, bin) {
+    document.getElementById('asm-view').innerHTML = asm.map(l => `
+        <div class="asm-line" id="asm-${l.pc}"><span class="asm-pc">${l.pc.toString(16).padStart(3,'0')}</span><span class="asm-hex">${bin[l.pc].toString(16).toUpperCase().padStart(4,'0')}</span><span class="asm-text">${l.text || ''}</span></div>
+    `).join('');
+}
+
+function screenSet(x, y) {
+    const ctx = document.getElementById('screen').getContext('2d');
+    ctx.fillStyle = '#39ff14'; ctx.fillRect(x * 10, y * 10, 10, 10);
+}
+
+function screenClear() {
+    const ctx = document.getElementById('screen').getContext('2d');
+    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 160, 160);
+}
+
+function stopCPU() { isRunning = false; clearInterval(runInterval); }
+function handleTab(e) { if(e.key==='Tab'){ e.preventDefault(); let s=e.target.selectionStart; e.target.value=e.target.value.substring(0,s)+"    "+e.target.value.substring(e.target.selectionEnd); e.target.selectionStart=e.target.selectionEnd=s+4; } }
+function downloadHex() {
+    let out = "v2.0 raw\n";
+    for(let i=0; i<4096; i++) out += PROM[i].toString(16).padStart(4,'0') + (i%8===7?"\n":" ");
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([out], {type:"text/plain"})); a.download="program.hex"; a.click();
+}
+</script>
+</body>
+</html>
