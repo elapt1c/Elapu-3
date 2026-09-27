@@ -23,3 +23,17 @@ The CPU operates on a minimal **4-bit opcode space (13 instructions)**. Dynamic 
 
 
 <img width="651" height="863" alt="image" src="https://github.com/user-attachments/assets/8644e98b-957a-4074-be28-66a531746358" />
+
+
+# SHOWCASE:
+
+TIC-TAC-TOE
+<img width="1066" height="922" alt="tictactoeshowcase" src="https://github.com/user-attachments/assets/068d068a-9aed-4d86-b17f-9d3ba3b7204c" />
+
+PHYSICS SIM
+<img width="1036" height="888" alt="physics" src="https://github.com/user-attachments/assets/fac37029-3e31-4a50-b15c-6f710b10d6d8" />
+
+REINFORCEMENT LEARNING PONG
+<img width="578" height="436" alt="RL_PONG" src="https://github.com/user-attachments/assets/7dd57817-705e-4cde-b649-074dcfe53551" />
+
+
