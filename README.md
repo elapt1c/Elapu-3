@@ -21,7 +21,8 @@ The CPU operates on a minimal **4-bit opcode space (13 instructions)**. Dynamic 
 
 > **Addressing Note:** `SDA`, `RDA`, and `WDA` provide register-indirect addressing without requiring self-modifying code. This enables dynamic array access, state-table lookups, and heap-style buffer traversal in 256 bytes of RAM.
 
-# INCLUDES A PYTHON3-LITE COMPILER/IDE. (see ironclad3-7.html)
+# INCLUDES A PYTHON3-LITE COMPILER/IDE.
+## (see ironclad3-7.html)
 
 <img width="651" height="863" alt="image" src="https://github.com/user-attachments/assets/8644e98b-957a-4074-be28-66a531746358" />
 
